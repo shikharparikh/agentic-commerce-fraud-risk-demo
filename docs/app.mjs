@@ -150,6 +150,8 @@ const notes = [
   ["Customer experience tradeoff", "The framework avoids blanket friction: approve trusted behavior, step up when uncertainty is manageable, and decline when delegated authority appears abused."]
 ];
 
+const timelineSteps = ["Identity", "Agent", "Permission", "Intent", "Transaction", "Context checks", "Risk", "Outcome"];
+
 const decisionClasses = {
   Approve: { className: "approve", color: "#10B981" },
   "Step-Up Auth": { className: "step", color: "#F59E0B" },
@@ -158,32 +160,33 @@ const decisionClasses = {
 
 function buildScenarioGraph(scenario) {
   if (scenario.id === "medium-risk") {
-    const sequence = ["user", "registration", "permissions", "intent", "transaction", "risk", "stepup", "confirmation", "monitoring", "dashboard"];
+    const sequence = ["user", "registration", "permissions", "intent", "transaction", "merchant-signal", "timing-signal", "risk", "stepup", "confirmation", "monitoring", "dashboard"];
     return {
-      summary: "Selective-friction path: uncertainty is resolved through customer confirmation before authorization.",
+      summary: "Chronology: identity and authority are checked first, the transaction creates context checks, then risk routes to step-up.",
       nodes: [
-        node("user", 0, 160, "User", "Human identity anchors the delegated action.", "core", 0),
-        node("registration", 185, 55, "Registered Agent", "Known agent, but limited tenure.", "core", 1),
-        node("permissions", 370, 55, "Delegated Envelope", "$500 retail cap; step-up allowed.", "core", 2),
-        node("intent", 555, 55, "Intent Capture", "Intent exists, but merchant context is not familiar.", "core", 3),
-        node("transaction", 740, 55, "Transaction Request", "$286.10 at a first-time merchant.", "core", 4),
-        node("merchant-signal", 370, 205, "Merchant Exposure", "New merchant raises uncertainty, not automatic fraud.", "signal", 5),
-        node("timing-signal", 555, 205, "Timing Variance", "Purchase occurs outside normal pattern.", "signal", 5),
-        node("risk", 740, 205, "Risk Engine", "Aggregates intent, merchant, amount, and timing signals.", "risk", 5),
-        node("stepup", 555, 355, "Step-Up Auth", "Ask customer to confirm the purchase intent.", "terminal", 6),
-        node("confirmation", 370, 355, "Human Confirmation", "Resume only after positive confirmation.", "control", 7),
-        node("monitoring", 185, 355, "Monitoring Loop", "Track approval, abandonment, and override rate.", "control", 8),
-        node("dashboard", 0, 355, "KPI / KRI Dashboard", "Friction and new-merchant exposure updated.", "control", 9)
+        node("user", 0, 145, "User", "Human identity anchors the delegated action.", "core", 0),
+        node("registration", 190, 45, "Registered Agent", "Known agent, but limited tenure.", "core", 1),
+        node("permissions", 380, 45, "Delegated Envelope", "$500 retail cap; step-up allowed.", "core", 2),
+        node("intent", 570, 45, "Intent Capture", "Intent exists, but merchant context is not familiar.", "core", 3),
+        node("transaction", 760, 45, "Transaction Request", "$286.10 at a first-time merchant.", "core", 4),
+        node("merchant-signal", 950, 20, "Merchant Exposure Check", "Transaction introduces a first-time merchant.", "signal", 5),
+        node("timing-signal", 950, 170, "Timing Pattern Check", "Purchase occurs outside normal pattern.", "signal", 6),
+        node("risk", 1140, 95, "Risk Engine", "Aggregates intent, merchant, amount, and timing signals.", "risk", 7),
+        node("stepup", 950, 345, "Step-Up Auth", "Ask customer to confirm the purchase intent.", "terminal", 8),
+        node("confirmation", 760, 345, "Human Confirmation", "Resume only after positive confirmation.", "control", 9),
+        node("monitoring", 570, 345, "Monitoring Loop", "Track approval, abandonment, and override rate.", "control", 10),
+        node("dashboard", 380, 345, "KPI / KRI Dashboard", "Friction and new-merchant exposure updated.", "control", 11)
       ],
       edges: [
         edge("user-registration", "user", "registration", "right-source", "left-target"),
         edge("registration-permissions", "registration", "permissions", "right-source", "left-target"),
         edge("permissions-intent", "permissions", "intent", "right-source", "left-target"),
         edge("intent-transaction", "intent", "transaction", "right-source", "left-target"),
-        edge("transaction-risk", "transaction", "risk", "bottom-source", "top-target"),
+        edge("transaction-merchant", "transaction", "merchant-signal", "right-source", "left-target", "merchant context"),
+        edge("transaction-timing", "transaction", "timing-signal", "bottom-source", "top-target", "timing context"),
         edge("merchant-risk", "merchant-signal", "risk", "right-source", "left-target", "merchant evidence"),
         edge("timing-risk", "timing-signal", "risk", "right-source", "left-target", "timing evidence"),
-        edge("risk-stepup", "risk", "stepup", "left-source", "right-target"),
+        edge("risk-stepup", "risk", "stepup", "bottom-source", "top-target"),
         edge("stepup-confirmation", "stepup", "confirmation", "left-source", "right-target"),
         edge("confirmation-monitoring", "confirmation", "monitoring", "left-source", "right-target"),
         edge("monitoring-dashboard", "monitoring", "dashboard", "left-source", "right-target")
@@ -194,7 +197,8 @@ function buildScenarioGraph(scenario) {
         "registration-permissions",
         "permissions-intent",
         "intent-transaction",
-        "transaction-risk",
+        "transaction-merchant",
+        "transaction-timing",
         "merchant-risk",
         "timing-risk",
         "risk-stepup",
@@ -206,32 +210,33 @@ function buildScenarioGraph(scenario) {
   }
 
   if (scenario.id === "high-risk") {
-    const sequence = ["user", "registration", "permissions", "intent", "transaction", "risk", "decline", "containment", "monitoring", "dashboard"];
+    const sequence = ["user", "registration", "permissions", "intent", "transaction", "token-signal", "velocity-signal", "risk", "decline", "containment", "monitoring", "dashboard"];
     return {
-      summary: "Protective-stop path: delegated-authority abuse indicators change the graph into decline, containment, and KRI escalation.",
+      summary: "Chronology: the transaction exposes token and velocity checks before the risk engine routes to containment.",
       nodes: [
-        node("user", 0, 160, "User", "Human account is protected from out-of-scope agent action.", "core", 0),
-        node("registration", 185, 55, "Agent Session", "Agent is known, but current behavior shifts.", "core", 1),
-        node("permissions", 370, 55, "Permission Boundary", "Category and spend expansion requested mid-session.", "core", 2),
-        node("intent", 555, 55, "Intent Capture", "Cart no longer matches authenticated intent.", "core", 3),
-        node("transaction", 740, 55, "Transaction Request", "$1,140 at unfamiliar merchant cluster.", "core", 4),
-        node("token-signal", 370, 205, "Token Inconsistency", "Credential refresh does not match expected pattern.", "signal", 5),
-        node("velocity-signal", 555, 205, "Velocity Spike", "Multiple rapid attempts after permission change.", "signal", 5),
-        node("risk", 740, 205, "Risk Engine", "Permission, token, velocity, and intent all point upward.", "risk", 5),
-        node("decline", 555, 355, "Decline Authorization", "Stop payment before submission.", "terminal", 6),
-        node("containment", 370, 355, "Containment Control", "Freeze expanded permissions; keep baseline account access.", "control", 7),
-        node("monitoring", 185, 355, "Monitoring Loop", "Route to review queue with reason codes.", "control", 8),
-        node("dashboard", 0, 355, "KRI Dashboard", "Permission escalation and intent mismatch updated.", "control", 9)
+        node("user", 0, 145, "User", "Human account is protected from out-of-scope agent action.", "core", 0),
+        node("registration", 190, 45, "Agent Session", "Agent is known, but current behavior shifts.", "core", 1),
+        node("permissions", 380, 45, "Permission Boundary", "Category and spend expansion requested mid-session.", "core", 2),
+        node("intent", 570, 45, "Intent Capture", "Cart no longer matches authenticated intent.", "core", 3),
+        node("transaction", 760, 45, "Transaction Request", "$1,140 at unfamiliar merchant cluster.", "core", 4),
+        node("token-signal", 950, 20, "Credential Continuity Check", "Token refresh does not match expected pattern.", "signal", 5),
+        node("velocity-signal", 950, 170, "Velocity / Permission Check", "Rapid attempts follow a permission change.", "signal", 6),
+        node("risk", 1140, 95, "Risk Engine", "Permission, token, velocity, and intent all point upward.", "risk", 7),
+        node("decline", 950, 345, "Decline Authorization", "Stop payment before submission.", "terminal", 8),
+        node("containment", 760, 345, "Containment Control", "Freeze expanded permissions; keep baseline account access.", "control", 9),
+        node("monitoring", 570, 345, "Monitoring Loop", "Route to review queue with reason codes.", "control", 10),
+        node("dashboard", 380, 345, "KRI Dashboard", "Permission escalation and intent mismatch updated.", "control", 11)
       ],
       edges: [
         edge("user-registration", "user", "registration", "right-source", "left-target"),
         edge("registration-permissions", "registration", "permissions", "right-source", "left-target"),
         edge("permissions-intent", "permissions", "intent", "right-source", "left-target"),
         edge("intent-transaction", "intent", "transaction", "right-source", "left-target"),
-        edge("transaction-risk", "transaction", "risk", "bottom-source", "top-target"),
+        edge("transaction-token", "transaction", "token-signal", "right-source", "left-target", "credential context"),
+        edge("transaction-velocity", "transaction", "velocity-signal", "bottom-source", "top-target", "velocity context"),
         edge("token-risk", "token-signal", "risk", "right-source", "left-target", "token evidence"),
         edge("velocity-risk", "velocity-signal", "risk", "right-source", "left-target", "velocity evidence"),
-        edge("risk-decline", "risk", "decline", "left-source", "right-target"),
+        edge("risk-decline", "risk", "decline", "bottom-source", "top-target"),
         edge("decline-containment", "decline", "containment", "left-source", "right-target"),
         edge("containment-monitoring", "containment", "monitoring", "left-source", "right-target"),
         edge("monitoring-dashboard", "monitoring", "dashboard", "left-source", "right-target")
@@ -242,7 +247,8 @@ function buildScenarioGraph(scenario) {
         "registration-permissions",
         "permissions-intent",
         "intent-transaction",
-        "transaction-risk",
+        "transaction-token",
+        "transaction-velocity",
         "token-risk",
         "velocity-risk",
         "risk-decline",
@@ -253,31 +259,32 @@ function buildScenarioGraph(scenario) {
     };
   }
 
-  const sequence = ["user", "registration", "permissions", "intent", "transaction", "risk", "approve", "monitoring", "dashboard"];
+  const sequence = ["user", "registration", "permissions", "intent", "transaction", "trust-signal", "cart-signal", "risk", "approve", "monitoring", "dashboard"];
   return {
-    summary: "Low-friction path: strong trust and intent evidence allow approval without interrupting the customer.",
+    summary: "Chronology: after the transaction request, trust history and intent-to-cart checks feed the risk decision.",
     nodes: [
-      node("user", 0, 160, "User", "Human identity and account relationship.", "core", 0),
-      node("registration", 185, 55, "Registered Agent", "Device-bound agent with prior successful purchases.", "core", 1),
-      node("permissions", 370, 55, "Delegated Envelope", "$250 cap, home goods scope, no step-up required.", "core", 2),
-      node("intent", 555, 55, "Intent Capture", "Authenticated request for replacement filters.", "core", 3),
-      node("transaction", 740, 55, "Transaction Request", "$82.40 at repeat merchant.", "core", 4),
-      node("trust-signal", 370, 205, "Trust Evidence", "Repeat merchant, normal amount, consistent device.", "signal", 5),
-      node("cart-signal", 555, 205, "Cart Context", "Cart matches captured purchase intent.", "signal", 5),
-      node("risk", 740, 205, "Risk Engine", "Signals remain inside the delegated trust envelope.", "risk", 5),
-      node("approve", 555, 355, "Approve", "Silent authorization; no customer interruption.", "terminal", 6),
-      node("monitoring", 370, 355, "Monitoring Loop", "Outcome logged for closed-loop trust calibration.", "control", 7),
-      node("dashboard", 185, 355, "KPI / KRI Dashboard", "Approval success and low friction updated.", "control", 8)
+      node("user", 0, 145, "User", "Human identity and account relationship.", "core", 0),
+      node("registration", 190, 45, "Registered Agent", "Device-bound agent with prior successful purchases.", "core", 1),
+      node("permissions", 380, 45, "Delegated Envelope", "$250 cap, home goods scope, no step-up required.", "core", 2),
+      node("intent", 570, 45, "Intent Capture", "Authenticated request for replacement filters.", "core", 3),
+      node("transaction", 760, 45, "Transaction Request", "$82.40 at repeat merchant.", "core", 4),
+      node("trust-signal", 950, 20, "Trust History Check", "Agent, merchant, amount, and device match prior behavior.", "signal", 5),
+      node("cart-signal", 950, 170, "Intent-to-Cart Check", "Cart still matches the captured purchase intent.", "signal", 6),
+      node("risk", 1140, 95, "Risk Engine", "Context checks remain inside the delegated trust envelope.", "risk", 7),
+      node("approve", 950, 345, "Approve", "Silent authorization; no customer interruption.", "terminal", 8),
+      node("monitoring", 760, 345, "Monitoring Loop", "Outcome logged for closed-loop trust calibration.", "control", 9),
+      node("dashboard", 570, 345, "KPI / KRI Dashboard", "Approval success and low friction updated.", "control", 10)
     ],
     edges: [
       edge("user-registration", "user", "registration", "right-source", "left-target"),
       edge("registration-permissions", "registration", "permissions", "right-source", "left-target"),
       edge("permissions-intent", "permissions", "intent", "right-source", "left-target"),
       edge("intent-transaction", "intent", "transaction", "right-source", "left-target"),
-      edge("transaction-risk", "transaction", "risk", "bottom-source", "top-target"),
+      edge("transaction-trust", "transaction", "trust-signal", "right-source", "left-target", "trust context"),
+      edge("transaction-cart", "transaction", "cart-signal", "bottom-source", "top-target", "cart context"),
       edge("trust-risk", "trust-signal", "risk", "right-source", "left-target", "trust evidence"),
       edge("cart-risk", "cart-signal", "risk", "right-source", "left-target", "intent evidence"),
-      edge("risk-approve", "risk", "approve", "left-source", "right-target"),
+      edge("risk-approve", "risk", "approve", "bottom-source", "top-target"),
       edge("approve-monitoring", "approve", "monitoring", "left-source", "right-target"),
       edge("monitoring-dashboard", "monitoring", "dashboard", "left-source", "right-target")
     ],
@@ -287,7 +294,8 @@ function buildScenarioGraph(scenario) {
       "registration-permissions",
       "permissions-intent",
       "intent-transaction",
-      "transaction-risk",
+      "transaction-trust",
+      "transaction-cart",
       "trust-risk",
       "cart-risk",
       "risk-approve",
@@ -307,6 +315,7 @@ function edge(id, source, target, sourceHandle, targetHandle, label = undefined)
 
 function FrameworkNode({ data }) {
   const activeClass = data.active && data.decision ? decisionClasses[data.decision].className : "";
+  const statusLabel = data.status === "current" ? "Evaluating" : data.status === "done" ? "Validated" : "Pending";
   return h(
     "div",
     { className: `flow-node ${data.kind} ${activeClass} ${data.status}` },
@@ -318,7 +327,7 @@ function FrameworkNode({ data }) {
     h(Handle, { id: "top-source", type: "source", position: Position.Top }),
     h(Handle, { id: "bottom-target", type: "target", position: Position.Bottom }),
     h(Handle, { id: "bottom-source", type: "source", position: Position.Bottom }),
-    h("div", { className: "node-kicker" }, data.status === "current" ? "Evaluating" : data.status === "done" ? "Validated" : "Pending"),
+    h("div", { className: "node-kicker" }, `Step ${data.stage + 1} · ${statusLabel}`),
     h("div", { className: "node-title" }, data.title),
     h("div", { className: "node-subtitle" }, data.subtitle)
   );
@@ -404,6 +413,18 @@ function App() {
             "span",
             { className: `badge ${activeDecision.className}` },
             stepIndex < scenarioGraph.sequence.length - 1 ? `Evaluating: ${scenarioGraph.nodes.find((item) => item.id === scenarioGraph.sequence[stepIndex])?.data.title}` : `Decision: ${activeScenario.decision}`
+          )
+        ),
+        h(
+          "div",
+          { className: "timeline-strip", "aria-label": "Chronological flow stages" },
+          timelineSteps.map((step, index) =>
+            h(
+              "div",
+              { key: step, className: "timeline-step" },
+              h("span", null, index + 1),
+              h("strong", null, step)
+            )
           )
         ),
         h(
