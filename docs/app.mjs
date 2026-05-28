@@ -24,6 +24,8 @@ const defaultLifecycleNodeIds = [
   "dashboard"
 ];
 
+const EVALUATION_STEP_MS = 900;
+
 const scenarios = [
   {
     id: "low-risk",
@@ -160,18 +162,18 @@ function buildScenarioGraph(scenario) {
     return {
       summary: "Selective-friction path: uncertainty is resolved through customer confirmation before authorization.",
       nodes: [
-        node("user", 0, 170, "User", "Human identity anchors the delegated action.", "core", 0),
-        node("registration", 175, 70, "Registered Agent", "Known agent, but limited tenure.", "core", 1),
-        node("permissions", 350, 70, "Delegated Envelope", "$500 retail cap; step-up allowed.", "core", 2),
-        node("intent", 525, 70, "Intent Capture", "Intent exists, but merchant context is not familiar.", "core", 3),
-        node("transaction", 700, 70, "Transaction Request", "$286.10 at a first-time merchant.", "core", 4),
-        node("merchant-signal", 350, 205, "Merchant Exposure", "New merchant raises uncertainty, not automatic fraud.", "signal", 5),
-        node("timing-signal", 525, 205, "Timing Variance", "Purchase occurs outside normal pattern.", "signal", 5),
-        node("risk", 700, 245, "Risk Engine", "Aggregates intent, merchant, amount, and timing signals.", "risk", 5),
-        node("stepup", 525, 370, "Step-Up Auth", "Ask customer to confirm the purchase intent.", "terminal", 6),
-        node("confirmation", 350, 370, "Human Confirmation", "Resume only after positive confirmation.", "control", 7),
-        node("monitoring", 175, 370, "Monitoring Loop", "Track approval, abandonment, and override rate.", "control", 8),
-        node("dashboard", 0, 370, "KPI / KRI Dashboard", "Friction and new-merchant exposure updated.", "control", 9)
+        node("user", 0, 160, "User", "Human identity anchors the delegated action.", "core", 0),
+        node("registration", 185, 55, "Registered Agent", "Known agent, but limited tenure.", "core", 1),
+        node("permissions", 370, 55, "Delegated Envelope", "$500 retail cap; step-up allowed.", "core", 2),
+        node("intent", 555, 55, "Intent Capture", "Intent exists, but merchant context is not familiar.", "core", 3),
+        node("transaction", 740, 55, "Transaction Request", "$286.10 at a first-time merchant.", "core", 4),
+        node("merchant-signal", 370, 205, "Merchant Exposure", "New merchant raises uncertainty, not automatic fraud.", "signal", 5),
+        node("timing-signal", 555, 205, "Timing Variance", "Purchase occurs outside normal pattern.", "signal", 5),
+        node("risk", 740, 205, "Risk Engine", "Aggregates intent, merchant, amount, and timing signals.", "risk", 5),
+        node("stepup", 555, 355, "Step-Up Auth", "Ask customer to confirm the purchase intent.", "terminal", 6),
+        node("confirmation", 370, 355, "Human Confirmation", "Resume only after positive confirmation.", "control", 7),
+        node("monitoring", 185, 355, "Monitoring Loop", "Track approval, abandonment, and override rate.", "control", 8),
+        node("dashboard", 0, 355, "KPI / KRI Dashboard", "Friction and new-merchant exposure updated.", "control", 9)
       ],
       edges: [
         edge("user-registration", "user", "registration", "right-source", "left-target"),
@@ -208,18 +210,18 @@ function buildScenarioGraph(scenario) {
     return {
       summary: "Protective-stop path: delegated-authority abuse indicators change the graph into decline, containment, and KRI escalation.",
       nodes: [
-        node("user", 0, 170, "User", "Human account is protected from out-of-scope agent action.", "core", 0),
-        node("registration", 175, 70, "Agent Session", "Agent is known, but current behavior shifts.", "core", 1),
-        node("permissions", 350, 70, "Permission Boundary", "Category and spend expansion requested mid-session.", "core", 2),
-        node("intent", 525, 70, "Intent Capture", "Cart no longer matches authenticated intent.", "core", 3),
-        node("transaction", 700, 70, "Transaction Request", "$1,140 at unfamiliar merchant cluster.", "core", 4),
-        node("token-signal", 350, 210, "Token Inconsistency", "Credential refresh does not match expected pattern.", "signal", 5),
-        node("velocity-signal", 525, 210, "Velocity Spike", "Multiple rapid attempts after permission change.", "signal", 5),
-        node("risk", 700, 245, "Risk Engine", "Permission, token, velocity, and intent all point upward.", "risk", 5),
-        node("decline", 525, 380, "Decline Authorization", "Stop payment before submission.", "terminal", 6),
-        node("containment", 350, 380, "Containment Control", "Freeze expanded permissions; keep baseline account access.", "control", 7),
-        node("monitoring", 175, 380, "Monitoring Loop", "Route to review queue with reason codes.", "control", 8),
-        node("dashboard", 0, 380, "KRI Dashboard", "Permission escalation and intent mismatch updated.", "control", 9)
+        node("user", 0, 160, "User", "Human account is protected from out-of-scope agent action.", "core", 0),
+        node("registration", 185, 55, "Agent Session", "Agent is known, but current behavior shifts.", "core", 1),
+        node("permissions", 370, 55, "Permission Boundary", "Category and spend expansion requested mid-session.", "core", 2),
+        node("intent", 555, 55, "Intent Capture", "Cart no longer matches authenticated intent.", "core", 3),
+        node("transaction", 740, 55, "Transaction Request", "$1,140 at unfamiliar merchant cluster.", "core", 4),
+        node("token-signal", 370, 205, "Token Inconsistency", "Credential refresh does not match expected pattern.", "signal", 5),
+        node("velocity-signal", 555, 205, "Velocity Spike", "Multiple rapid attempts after permission change.", "signal", 5),
+        node("risk", 740, 205, "Risk Engine", "Permission, token, velocity, and intent all point upward.", "risk", 5),
+        node("decline", 555, 355, "Decline Authorization", "Stop payment before submission.", "terminal", 6),
+        node("containment", 370, 355, "Containment Control", "Freeze expanded permissions; keep baseline account access.", "control", 7),
+        node("monitoring", 185, 355, "Monitoring Loop", "Route to review queue with reason codes.", "control", 8),
+        node("dashboard", 0, 355, "KRI Dashboard", "Permission escalation and intent mismatch updated.", "control", 9)
       ],
       edges: [
         edge("user-registration", "user", "registration", "right-source", "left-target"),
@@ -255,17 +257,17 @@ function buildScenarioGraph(scenario) {
   return {
     summary: "Low-friction path: strong trust and intent evidence allow approval without interrupting the customer.",
     nodes: [
-      node("user", 0, 165, "User", "Human identity and account relationship.", "core", 0),
-      node("registration", 190, 55, "Registered Agent", "Device-bound agent with prior successful purchases.", "core", 1),
-      node("permissions", 380, 55, "Delegated Envelope", "$250 cap, home goods scope, no step-up required.", "core", 2),
-      node("intent", 570, 55, "Intent Capture", "Authenticated request for replacement filters.", "core", 3),
-      node("transaction", 760, 165, "Transaction Request", "$82.40 at repeat merchant.", "core", 4),
-      node("trust-signal", 380, 210, "Trust Evidence", "Repeat merchant, normal amount, consistent device.", "signal", 5),
-      node("cart-signal", 570, 210, "Cart Context", "Cart matches captured purchase intent.", "signal", 5),
-      node("risk", 760, 305, "Risk Engine", "Signals remain inside the delegated trust envelope.", "risk", 5),
-      node("approve", 570, 395, "Approve", "Silent authorization; no customer interruption.", "terminal", 6),
-      node("monitoring", 380, 395, "Monitoring Loop", "Outcome logged for closed-loop trust calibration.", "control", 7),
-      node("dashboard", 190, 395, "KPI / KRI Dashboard", "Approval success and low friction updated.", "control", 8)
+      node("user", 0, 160, "User", "Human identity and account relationship.", "core", 0),
+      node("registration", 185, 55, "Registered Agent", "Device-bound agent with prior successful purchases.", "core", 1),
+      node("permissions", 370, 55, "Delegated Envelope", "$250 cap, home goods scope, no step-up required.", "core", 2),
+      node("intent", 555, 55, "Intent Capture", "Authenticated request for replacement filters.", "core", 3),
+      node("transaction", 740, 55, "Transaction Request", "$82.40 at repeat merchant.", "core", 4),
+      node("trust-signal", 370, 205, "Trust Evidence", "Repeat merchant, normal amount, consistent device.", "signal", 5),
+      node("cart-signal", 555, 205, "Cart Context", "Cart matches captured purchase intent.", "signal", 5),
+      node("risk", 740, 205, "Risk Engine", "Signals remain inside the delegated trust envelope.", "risk", 5),
+      node("approve", 555, 355, "Approve", "Silent authorization; no customer interruption.", "terminal", 6),
+      node("monitoring", 370, 355, "Monitoring Loop", "Outcome logged for closed-loop trust calibration.", "control", 7),
+      node("dashboard", 185, 355, "KPI / KRI Dashboard", "Approval success and low friction updated.", "control", 8)
     ],
     edges: [
       edge("user-registration", "user", "registration", "right-source", "left-target"),
@@ -342,7 +344,7 @@ function App() {
         }
         return current + 1;
       });
-    }, 520);
+    }, EVALUATION_STEP_MS);
     return () => clearInterval(timer);
   }, [scenarioId, scenarioGraph.sequence.length]);
 
@@ -417,8 +419,8 @@ function App() {
                 edges,
                 nodeTypes: { frameworkNode: FrameworkNode },
                 fitView: true,
-                fitViewOptions: { padding: 0.18 },
-                minZoom: 0.55,
+                fitViewOptions: { padding: 0.1 },
+                minZoom: 0.32,
                 maxZoom: 1.4,
                 nodesDraggable: false,
                 nodesConnectable: false,
